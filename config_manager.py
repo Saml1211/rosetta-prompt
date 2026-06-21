@@ -115,7 +115,6 @@ class ConfigManager:
 
         # Provider selection
         current_provider = self.get_active_provider()
-        print(f"DEBUG: Current provider: {current_provider}")  # Debug log
         selected_provider = st.sidebar.selectbox(
             "Active Provider",
             self.PROVIDERS,

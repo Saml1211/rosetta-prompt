@@ -5,9 +5,11 @@ A Streamlit application that transforms clarifying questions and brain-dump answ
 ## Features
 
 - **Multi-Provider Support**: Works with OpenAI, OpenRouter, and Ollama
+- **Runs free via local Ollama**: No API key or cloud spend needed — point it at a local Ollama model and refine for free
 - **Dynamic Configuration**: Secure API key management with local .env persistence
 - **Clean Output**: Generates natural, ready-to-use prompts without formatting overhead
 - **Real-time Validation**: Input validation and connection testing
+- **Dark / Light Theme Toggle**: Switch themes from the sidebar (theme selector) at any time
 - **Responsive UI**: Clean three-column interface for easy prompt refinement
 
 ## Installation
@@ -28,8 +30,12 @@ A Streamlit application that transforms clarifying questions and brain-dump answ
 2. **Configure your LLM provider**:
    - Open the Configuration sidebar
    - Select your provider (OpenAI, OpenRouter, or Ollama)
-   - Enter your API credentials
+   - Enter your API credentials (not needed for Ollama — it runs free/local)
    - Click "Save Settings"
+   - Optionally toggle the **dark / light theme** from the sidebar theme selector
+
+   For the free path, install [Ollama](https://ollama.com), run `ollama pull llama3`,
+   select **Ollama** as the provider, and refine with no cloud spend.
 
 3. **Refine your responses**:
    - Paste AI clarifying questions in the left column
@@ -88,8 +94,11 @@ rosetta-prompt/
 ├── config_manager.py   # Configuration and .env management
 ├── api_clients.py      # LLM API client implementations
 ├── prompt_refiner.py   # Core prompt refinement logic
+├── theme_manager.py    # Dark/light theme CSS + selector
+├── tests/              # Offline unit tests (validate_inputs, _clean_response)
 ├── requirements.txt    # Python dependencies
-├── .env               # Environment variables (auto-created)
+├── .env.example        # Template config (copy to .env)
+├── .env               # Environment variables (auto-created, git-ignored)
 └── .gitignore         # Git ignore rules
 ```
 
