@@ -19,6 +19,44 @@ def refiner():
     return PromptRefiner(None)
 
 
+def test_ollama_client_uses_chat_api_and_disables_thinking(monkeypatch):
+    # Thinking models return an empty 'response' under /api/generate and an
+    # empty 'content' unless thinking is off — the exact failure seen on the
+    # first real run against local Ollama.
+    import api_clients
+
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+        text = ""
+
+        def json(self):
+            return {"message": {"content": "  refined answer  "}}
+
+    def fake_post(url, json=None, timeout=None):
+        captured["url"] = url
+        captured["payload"] = json
+        return FakeResponse()
+
+    monkeypatch.setattr(api_clients.requests, "post", fake_post)
+    client = api_clients.OllamaClient("qwen3:4b")
+    out = client.generate_response("be brief", "answer this")
+
+    assert out == "refined answer"
+    assert captured["url"].endswith("/api/chat")
+    assert captured["payload"]["messages"] == [
+        {"role": "system", "content": "be brief"},
+        {"role": "user", "content": "answer this"},
+    ]
+    assert captured["payload"]["think"] is False
+
+
+def test_clean_response_strips_think_blocks(refiner):
+    messy = "<think>deliberating at length</think>\n\nThe actual answer."
+    assert refiner._clean_response(messy) == "The actual answer."
+
+
 # --- validate_inputs -------------------------------------------------------
 
 def test_validate_inputs_happy_path(refiner):

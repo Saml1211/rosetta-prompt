@@ -41,8 +41,15 @@ Please transform the raw responses into clear, direct answers to the clarifying 
 
     def _clean_response(self, response: str) -> str:
         """Clean and format the LLM response."""
+        # Thinking models may emit their reasoning in <think>...</think>
+        # blocks (or narrate it in the open); the refined answer is what
+        # comes after the last closed block. Strip whole blocks before the
+        # generic tag removal, which would otherwise delete the tags but
+        # keep the reasoning text.
+        cleaned = re.sub(r'<think>.*?</think>\s*', '', response, flags=re.DOTALL)
+
         # Remove any XML tags if present (fallback for models that might still use them)
-        cleaned = re.sub(r'<[^>]+>', '', response)
+        cleaned = re.sub(r'<[^>]+>', '', cleaned)
 
         # Remove surrounding quotation marks if present
         cleaned = cleaned.strip()

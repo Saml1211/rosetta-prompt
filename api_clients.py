@@ -201,12 +201,26 @@ class OllamaClient(LLMClient):
         self.base_url = base_url.rstrip("/")
 
     def generate_response(self, system_prompt: str, user_prompt: str) -> str:
-        """Generate a response using Ollama API."""
+        """Generate a response using Ollama's chat API.
+
+        /api/chat with real system/user roles rather than /api/generate with
+        a flat prompt: thinking models (qwen3 and friends) put their
+        reasoning in a separate field and can return an empty 'response'
+        under /api/generate, which surfaced as "LLM returned empty
+        response" on every real call.
+        """
         try:
             payload = {
                 "model": self.model,
-                "prompt": f"System: {system_prompt}\n\nUser: {user_prompt}\n\nAssistant:",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
                 "stream": False,
+                # Ask for the answer directly: with thinking enabled these
+                # models spend their budget in a separate 'thinking' field
+                # and 'content' comes back empty.
+                "think": False,
                 "options": {
                     "temperature": 0.7,
                     "num_predict": 2000
@@ -214,7 +228,7 @@ class OllamaClient(LLMClient):
             }
 
             response = requests.post(
-                f"{self.base_url}/api/generate",
+                f"{self.base_url}/api/chat",
                 json=payload,
                 timeout=120
             )
@@ -226,7 +240,7 @@ class OllamaClient(LLMClient):
             if "error" in result:
                 raise Exception(f"API error: {result['error']}")
 
-            return result.get("response", "").strip()
+            return result.get("message", {}).get("content", "").strip()
 
         except requests.exceptions.RequestException as e:
             raise Exception(f"Ollama request error: {str(e)}")
