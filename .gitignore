@@ -41,3 +41,7 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+# Local environments / caches not covered above
+.venv/
+.pytest_cache/
+.claude-flow/
